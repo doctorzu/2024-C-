@@ -22,7 +22,13 @@ def calculate_comprehensive_momentum(data, player_number, window_size=5):
             # 基本的势头得分计算
             P_t = 1 if row['point_victor'] == player_number else -1
             S_t = 1.2 if row['server'] == player_number else 1.0
-            momentum_score += P_t * S_t
+            base_momentum = P_t * S_t
+
+            # 确保基础势头得分为正值，如果球员赢得得分点
+            if P_t == 1:
+                base_momentum = max(base_momentum, 0.5)  # 至少增加 0.5 的势头得分
+
+            momentum_score += base_momentum
 
             # 连续得分的调整
             if P_t == 1:
