@@ -11,6 +11,7 @@ filtered_data = df[df['match_id'] == target_match_id].copy()
 
 
 # 定义一个计算综合势头得分的函数
+# 定义一个计算综合势头得分的函数
 def calculate_comprehensive_momentum(data, player_number, window_size=5):
     momentum_scores = [0] * len(data)
     consecutive_wins = 0  # 追踪连续获胜
@@ -26,7 +27,7 @@ def calculate_comprehensive_momentum(data, player_number, window_size=5):
 
             # 确保基础势头得分为正值，如果球员赢得得分点
             if P_t == 1:
-                base_momentum = max(base_momentum, 0.5)  # 至少增加 0.5 的势头得分
+                base_momentum = max(base_momentum, 2)  # 至少增加2的势头得分
 
             momentum_score += base_momentum
 
@@ -59,14 +60,56 @@ def calculate_comprehensive_momentum(data, player_number, window_size=5):
 filtered_data['comprehensive_momentum_1'] = calculate_comprehensive_momentum(filtered_data, player_number=1)
 filtered_data['comprehensive_momentum_2'] = calculate_comprehensive_momentum(filtered_data, player_number=2)
 
-# 绘制综合势头得分
+# Define the threshold for a significant momentum shift
+threshold = 10
+
+# Initialize lists to store the points of positive and negative shifts for both players
+shifts_player_1 = []
+shifts_player_2 = []
+
+# Calculate the momentum change for each point and find shifts
+for i in range(1, len(filtered_data)):
+    change_1 = filtered_data['comprehensive_momentum_1'].iloc[i] - filtered_data['comprehensive_momentum_1'].iloc[i - 1]
+    change_2 = filtered_data['comprehensive_momentum_2'].iloc[i] - filtered_data['comprehensive_momentum_2'].iloc[i - 1]
+
+    if abs(change_1) >= threshold:
+        shift_type = 'Positive' if change_1 > 0 else 'Negative'
+        shifts_player_1.append((i, shift_type))
+    if abs(change_2) >= threshold:
+        shift_type = 'Positive' if change_2 > 0 else 'Negative'
+        shifts_player_2.append((i, shift_type))
+
+# Annotation
+for point, shift_type in shifts_player_1:
+    set_no = filtered_data['set_no'].iloc[point]
+    game_no = filtered_data['game_no'].iloc[point]
+    print(f"Player 1 had a {shift_type} shift at point number {point}, during set {set_no}, game {game_no}.")
+
+for point, shift_type in shifts_player_2:
+    set_no = filtered_data['set_no'].iloc[point]
+    game_no = filtered_data['game_no'].iloc[point]
+    print(f"Player 2 had a {shift_type} shift at point number {point}, during set {set_no}, game {game_no}.")
+
+# Create the plot
 plt.figure(figsize=(12, 6))
 plt.plot(filtered_data['point_no'], filtered_data['comprehensive_momentum_1'], label='Player 1 Momentum', color='blue')
 plt.plot(filtered_data['point_no'], filtered_data['comprehensive_momentum_2'], label='Player 2 Momentum', color='red')
+
+for point, shift_type in shifts_player_1:
+    marker = '*' if shift_type == 'Positive' else 'x'
+    color = 'green' if shift_type == 'Positive' else 'red'
+    plt.scatter(filtered_data['point_no'].iloc[point], filtered_data['comprehensive_momentum_1'].iloc[point],
+                color=color, marker=marker, s=100)
+
+for point, shift_type in shifts_player_2:
+    marker = '*' if shift_type == 'Positive' else 'x'
+    color = 'green' if shift_type == 'Positive' else 'red'
+    plt.scatter(filtered_data['point_no'].iloc[point], filtered_data['comprehensive_momentum_1'].iloc[point],
+                color=color, marker=marker, s=100)
+
+# Add labels and title to the plot
 plt.xlabel('Point Number')
-plt.ylabel('Advanced Momentum Score with Consecutive Points')
+plt.ylabel('Momentum Score')
 plt.title('Advanced Momentum Score with Consecutive Points Comparison Throughout the Match')
 plt.legend()
 plt.show()
-
-
