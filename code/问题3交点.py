@@ -62,7 +62,8 @@ r2 = r2_score(y_test, y_pred)
 print("R² score:", r2)
 
 # 找到交点的函数
-def find_intersections(y1, y2, threshold=4.5):
+def find_intersections(y1, y2, threshold=10):
+
     intersections = []
     for i in range(1, len(y1)):
         change_1 = abs(y1[i] - y1[i-1])
