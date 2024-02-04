@@ -1,0 +1,34 @@
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+# Loading the dataset
+file_path_1 = '/mnt/data/server_1_data.csv'
+data_1 = pd.read_csv(file_path_1)
+
+# Separating the features and the target variable
+X = data_1.drop('Label', axis=1)
+y = data_1['Label']
+
+# Normalizing the data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Splitting the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# Training the logistic regression model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Getting the coefficients
+coefficients = model.coef_[0]
+feature_names = X.columns
+coefficients_df = pd.DataFrame({'Feature': feature_names, 'Coefficient': coefficients})
+
+# Evaluating the model's accuracy on the test set
+accuracy = model.score(X_test, y_test)
+
+# Display coefficients and accuracy
+coefficients_df, accuracy
